@@ -34,6 +34,7 @@ class WSUWP_JSON_Web_Template {
 	 */
 	public function setup_hooks() {
 		add_action( 'init', array( $this, 'register_content_type' ) );
+		add_filter( 'template_redirect', array( $this, 'template_takeover' ), 10 );
 	}
 
 	/**
@@ -66,6 +67,65 @@ class WSUWP_JSON_Web_Template {
 		);
 
 		register_post_type( $this->content_type, $args );
+	}
+
+	/**
+	 * Look for and handle any requests made to the `/web-template/` URL so that a JSON object containing
+	 * the two parts of the template can be returned. We force the response to 200 OK and die as soon as
+	 * the JSON is output.
+	 */
+	public function template_takeover() {
+		$pre = $this->build_pre_content();
+		$post = $this->build_post_content();
+
+		header('HTTP/1.1 200 OK');
+		header('Content-Type: application/json');
+		echo json_encode( array( 'before_content' => $pre, 'after_content' => $post ) );
+		die(0);
+	}
+
+	public function get_template_part( $template ) {
+	
+		if ( file_exists( dirname( __FILE__ ) . '/' . $template ) ) {
+
+		}
+	}
+
+	/**
+	 * Build the HTML to be displayed before any additional content is added by the requesting page.
+	 *
+	 * @return string HTML content.
+	 */
+	private function build_pre_content() {
+		ob_start();
+
+		get_header();
+
+		$this->get_template_part( 'templates/pre-content.php' );
+
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return $content;
+	}
+
+	/**
+	 * Build the HTML to be displayed after any additional content is added by the requesting page.
+	 *
+	 * @return string HTML content.
+	 */
+	private function build_post_content() {
+		ob_start();
+		?>
+		</div>
+		</section>
+		</main>
+		<?php
+		get_footer();
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return $content;
 	}
 }
 
