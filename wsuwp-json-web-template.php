@@ -4,7 +4,7 @@ Plugin Name: WSUWP JSON Web Template
 Plugin URI: https://web.wsu.edu/
 Description: Provide JSON web templates for external applications.
 Author: washingtonstateuniversity, jeremyfelt
-Version: 0.0.0
+Version: 0.1.0
 */
 
 class WSUWP_JSON_Web_Template {
