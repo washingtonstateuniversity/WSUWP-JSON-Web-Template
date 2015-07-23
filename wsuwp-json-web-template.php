@@ -34,7 +34,7 @@ class WSUWP_JSON_Web_Template {
 	 */
 	public function setup_hooks() {
 		add_action( 'init', array( $this, 'register_content_type' ) );
-		add_filter( 'template_redirect', array( $this, 'template_takeover' ), 10 );
+		add_action( 'template_redirect', array( $this, 'template_takeover' ), 10 );
 	}
 
 	/**
@@ -75,20 +75,19 @@ class WSUWP_JSON_Web_Template {
 	 * the JSON is output.
 	 */
 	public function template_takeover() {
-		$pre = $this->build_pre_content();
-		$post = $this->build_post_content();
+		if ( ! is_singular( $this->content_type ) ) {
+			return;
+		}
 
-		header('HTTP/1.1 200 OK');
-		header('Content-Type: application/json');
+		$post = get_post();
+
+		$pre = $this->build_pre_content( $post->post_name );
+		$post = $this->build_post_content( $post->post_name );
+
+		header( 'HTTP/1.1 200 OK' );
+		header( 'Content-Type: application/json' );
 		echo json_encode( array( 'before_content' => $pre, 'after_content' => $post ) );
 		die(0);
-	}
-
-	public function get_template_part( $template ) {
-	
-		if ( file_exists( dirname( __FILE__ ) . '/' . $template ) ) {
-
-		}
 	}
 
 	/**
@@ -96,12 +95,12 @@ class WSUWP_JSON_Web_Template {
 	 *
 	 * @return string HTML content.
 	 */
-	private function build_pre_content() {
+	private function build_pre_content( $post_slug ) {
 		ob_start();
 
 		get_header();
 
-		$this->get_template_part( 'templates/pre-content.php' );
+		get_template_part( 'web-template-pre', $post_slug );
 
 		$content = ob_get_contents();
 		ob_end_clean();
@@ -114,14 +113,12 @@ class WSUWP_JSON_Web_Template {
 	 *
 	 * @return string HTML content.
 	 */
-	private function build_post_content() {
+	private function build_post_content( $post_slug ) {
 		ob_start();
-		?>
-		</div>
-		</section>
-		</main>
-		<?php
+
+		get_template_part( 'web-template-post', $post_slug );
 		get_footer();
+
 		$content = ob_get_contents();
 		ob_end_clean();
 
